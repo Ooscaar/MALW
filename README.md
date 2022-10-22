@@ -49,7 +49,7 @@ Serving HTTP on 172.17.0.1 port 3000 (http://172.17.0.1:3000/) ...
 Log in to the polemarch server using default password (admin/admin) and
 create a project with a the compromised tar file:
 
-![Project](./pictures/project.png)
+![Project](./images/project.png)
 
 "Sync" the project, which will untar untar our compromised tar.
 
