@@ -8,14 +8,13 @@ and based on the work from https://www.trellix.com/en-us/about/newsroom/stories/
 ### Directories to attack
 - /etc 
   -> passwd
-- /opt/polemarch/bin
+- /opt/polemarch/bin: example **docker.tar** configured
   -> polemarchctl: entry point for docker
 
 ### Notes
 - Binary files MUST have executable permissions
 - Tar's can not be deployed twice
 - Malware will be placed in an auxiliar folder which will be symlinked to target folder
-
 
 ## Instructions
 In order to deploy the malware we will have to set up:
