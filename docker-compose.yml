@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+
+  ubuntu:
+    container_name: ubuntu_monero
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    ports:
+      - "8085:8080"
