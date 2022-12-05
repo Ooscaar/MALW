@@ -1,7 +1,12 @@
 
 # Start xmrig
+First, copy the default config.json:
 
-You can start the cryptominer in two different ways:
+```bash
+cp config.json.default config.json
+```
+
+The, you can start the cryptominer in two different ways:
 
 Using the `config.json` file:
 ```
