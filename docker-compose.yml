@@ -11,3 +11,4 @@ services:
     tty: true        # docker run -t
     ports:
       - "8085:8080"
+
