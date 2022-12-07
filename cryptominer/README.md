@@ -16,7 +16,7 @@ Using the `config.json` file:
 Without using the `config.json` file:
 ```
 ./xmrig \
-    --url hashvaultsvg2rinvxz7kos77hdfm6zrd5yco3tx2yh2linsmusfwyad.onion:80 \
+    --url hashvaultsvg2rinvxz7kos77hdfm6zrd5yco3tx2yh2linsmusfwyad.onion \
     --proxy=localhost:9050 \
     --user 41yjBrEhDeThnyvxhbiC3rQwcJtV3X1Zy8s9uW4NKUxVKaH59C4XyuW72D1DeLqm7oSGunxpu4WgNawx1FqWc1deCAZTauo \
     --pass x \
