@@ -128,7 +128,7 @@ $: python -m http.server 3005
 Log in to the polemarch server using default password (admin/admin) and
 create a project with a the compromised tar file:
 
-![Project](./images/project.png)
+![PROJECT](https://user-images.githubusercontent.com/60936394/206489889-e48ef2fa-3bf8-4df7-b5bf-6c5a6cdec872.png)
 
 "Sync" the project, which will untar untar our compromised tar.
 
