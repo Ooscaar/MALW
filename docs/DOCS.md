@@ -11,6 +11,56 @@ The project consist of the following parts:
 ## Path traversal exploit
 Based the work from https://www.trellix.com/en-us/about/newsroom/stories/research/tarfile-exploiting-the-world.html.
 
+They (trellix) have created a tool for checking this vulnerability, called https://github.com/advanced-threat-research/Creosote.
+
+Running it to the polemarch 1.8.5 version, we see:
+```
+/tmp
+❯ python3 Creosote/creosote.py polemarch
+ ::::::::  :::::::::  :::::::::: ::::::::   ::::::::   :::::::: ::::::::::: ::::::::::
+:+:    :+: :+:    :+: :+:       :+:    :+: :+:    :+: :+:    :+:    :+:     :+:
++:+        +:+    +:+ +:+       +:+    +:+ +:+        +:+    +:+    +:+     +:+
++#+        +#++:++#:  +#++:++#  +#+    +:+ +#++:++#++ +#+    +:+    +#+     +#++:++#
++#+        +#+    +#+ +#+       +#+    +#+        +#+ +#+    +#+    +#+     +#+
+#+#    #+# #+#    #+# #+#       #+#    #+# #+#    #+# #+#    #+#    #+#     #+#
+ ########  ###    ### ########## ########   ########   ########     ###     ##########
+
+Starting scan of:polemarch/
+	Scanning for Vulnerabilities:
+		Scan Completed
+
+1 files with vulns:	1 vulns, 0 probable vulns, and 0 potential vulns found
+	polemarch/polemarch/main/repo/tar.py
+		Found vulns on lines: 34
+```
+
+Which correspons to:
+
+```python
+def _extract(self, archive: FILENAME, path: Text, options) -> Tuple[Path, bool]:
+        # pylint: disable=broad-except
+        moved = False
+        try:
+            shutil.move(path, path + ".bak")
+            moved = True
+        except IOError:
+            pass
+        try:
+            repo_branch = self.proj.vars.get('repo_branch', '')
+            ###############
+            ## VULNERABLE #
+            with tarfile.open(archive) as arch:
+                arch.extractall(path, members=self.__get_members(arch, repo_branch))
+           ################
+        except:
+            self.delete()
+            shutil.move(path + ".bak", path) if moved else None
+            raise
+        else:
+            shutil.rmtree(path + ".bak") if moved else None
+            return Path(path), True
+```
+
 We are able to overwrite several files by following https://mail.python.org/pipermail/python-dev/2007-August/074290.html:
 > Another variety of this bug is a symlink one: if tar contains files like:
 > ./aaaa-directory -> /etc
