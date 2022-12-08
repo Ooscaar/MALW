@@ -1,0 +1,4 @@
+# Ignore all tar's 
+*.tar
+# Ignore all tar.gz's
+*.tar.gz
