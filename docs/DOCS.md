@@ -65,6 +65,18 @@ xmring
 
 In this way we are able to overwrite files by using symbolic links, as we do not have permissions to overwrite existing files.
 
+An example in a real server:
+
+```bash
+root@7fda55a86d74:/# ls -l /test/
+total 0
+lrwxrwxrwx 1 1001 1001  5 Dec  8 12:30 aaaa -> /etc/
+lrwxrwxrwx 1 1001 1001 15 Dec  8 12:30 bbbb -> /usr/local/lib/
+lrwxrwxrwx 1 1001 1001  9 Dec  8 12:30 cccc -> /usr/bin/
+lrwxrwxrwx 1 1001 1001 19 Dec  8 12:30 dddd -> /opt/polemarch/bin/
+root@7fda55a86d74:/#
+```
+
 ## RCE
 
 ## Rootkit
