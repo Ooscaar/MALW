@@ -31,6 +31,9 @@ RUN chmod +x /usr/local/bin/provision-docker.sh
 # Run the provision.sh script when the container starts
 RUN /usr/local/bin/provision-docker.sh
 
+# Install some packages
+RUN apt-get install -y procps htop net-tools iproute2
+
 # Change entrypoint
 ENTRYPOINT ["/opt/polemarch/bin/polemarchctl"]
 
