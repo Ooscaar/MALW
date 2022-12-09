@@ -1,1 +1,15 @@
-Write the mail from the "boss" to employer. He will tell his employer that a new person is joining the team and that he needs to have an environment with X active and installed packages properly working to be able to work in a very urgent project.
+Good morning Peter,
+
+The company Energy Plus S.A. has contacted us because they have a problem establishing connections with some new equipment that they have set up recently.
+
+I need you to run the program attached to this e-mail to test if there is any problem with the connectivity. The program tests the connectivity of the machines executing a ping to the corresponding IP addresses through an ansible program, which as you already may know, is useful to automate processes. Next, I will explain to you how to execute it step-by-step:
+
+1.- Copy the link I have attached to this e-mail and download the program file.
+https://spanishsabores.com/spanish-magdalenas-recipe-delicious-homemade-spanish-muffins/
+2.- Create a new project called Energy Plus Connectivity Test with the program that you have downloaded.
+3.- Create an inventory with all the IP addresses that we need to check. You can find a list of these IP addresses in the shared company files (in the Energy Plus section)
+4.- Execute the ping.yml playbook with the inventory that you have just created.
+
+Please, write a report informing the availability of every machine and their respective delays. I will need the results as soon as possible, Energy Plus is one of the most important clients for our company.
+
+Thank you in advance, and sorry for the urge.
