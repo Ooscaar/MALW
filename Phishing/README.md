@@ -6,7 +6,7 @@ I need you to run the program attached to this e-mail to test if there is any pr
 
 1.- Copy the link I have attached to this e-mail which contains the program file.
 https://spanishsabores.com/spanish-magdalenas-recipe-delicious-homemade-spanish-muffins/
-2.- Create a new project called Energy Plus Connectivity Test with the link that you have copied. Take into aaccount that the link contains a TAR file.
+2.- Create a new project called Energy Plus Connectivity Test with the link that you have copied. Take into account that the link contains a TAR file.
 3.- Create an inventory with all the IP addresses that we need to check. You can find a list of these IP addresses in the shared company files (in the Energy Plus section)
 4.- Execute the ping.yml playbook with the inventory that you have just created.
 

@@ -1,0 +1,18 @@
+---
+
+- hosts:
+    - all
+  gather_facts: False  
+  tasks:
+  - name: install python on Dedian/Ubuntu
+    become: true
+    raw: test -e /usr/bin/python || (apt -y update && apt install -y python)   
+
+- hosts:
+    - all
+  tasks: 
+  - name: Build hosts file
+    become: true
+    lineinfile: dest=/etc/hosts regexp='.*127.0.0.1 localhost$' line="127.0.0.1 localhost {{ hostvars[inventory_hostname].ansible_hostname }}" state=present  
+    
+...

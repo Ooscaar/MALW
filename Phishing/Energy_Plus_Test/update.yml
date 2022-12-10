@@ -1,0 +1,16 @@
+---
+- hosts: all
+  tasks:
+    - name: Update Packages on Debian nodes
+      when: ansible_os_family == 'Debian'
+      apt:
+        update_cache: yes
+        cache_valid_time: 86400
+        upgrade: dist
+
+    - name: Update Packages on RedHat nodes
+      when: ansible_os_family == 'RedHat'
+      yum:
+        update_cache: yes
+        name: "*"
+        state: latest
