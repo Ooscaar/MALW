@@ -1,22 +1,9 @@
-# MALW
-Malware UPC
+# CVE-2007-4559 - Polemarch exploit 
+Full working exploit for Polemarch server https://www.polemarch.org/, using CVE-2007-4559, allowing:
 
-## Set up
+- Injection of a cryptominer for minero 
+- Injection of a rootkit
 
-### Docker
-```bash
-$: docker compose build 
-$: docker compose up -d
-```
-
-Polemarch server available at http://localhost:8080
-
-### Vagrant
-```bash
-$: vagrant up
-```
-
-Polemarch server available at http://localhost:8085
 
 ## POC
 Proof of concept using https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-4559 
