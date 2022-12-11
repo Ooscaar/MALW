@@ -2,8 +2,8 @@ version: "3"
 
 services:
 
-  ubuntu:
-    container_name: ubuntu_polemarch
+  polemarch:
+    container_name: polemarch
     build: .
     ports:
       - 8180:8080
