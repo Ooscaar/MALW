@@ -6,7 +6,7 @@ services:
     container_name: polemarch
     build: .
     ports:
-      - 8180:8080
+      - 8080:8080
 
   python:
     container_name: malicious-server
