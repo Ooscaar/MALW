@@ -1,7 +1,7 @@
 # CVE-2007-4559 - Polemarch exploit 
 Full working exploit for Polemarch server https://www.polemarch.org/, using CVE-2007-4559, allowing:
 
-- Injection of a cryptominer for minero 
+- Injection of a cryptominer for monero 
 - Injection of a rootkit
 
 
