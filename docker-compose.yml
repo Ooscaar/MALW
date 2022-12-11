@@ -6,15 +6,15 @@ services:
     container_name: ubuntu_polemarch
     build: .
     ports:
-      - 8080:8080
+      - 8180:8080
 
   python:
     container_name: malicious-server
     image: python:3
     volumes:
-      - ./poc:/usr/src/myapp
+      - .:/usr/src/myapp
     ports:
       - 3005:80
     working_dir: /usr/src/myapp
-    command: sh -c "python tar.py && cd tar && python -m http.server 80"
+    command: sh -c "cd poc && python tar.py && cd tar && python -m http.server 80"
 
