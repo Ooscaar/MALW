@@ -3,7 +3,7 @@ import os
 
 # Project with polemarch project
 # ------------------------------
-POLEMARCH_PROJECT = "../Phishing/Energy_Plus_Test"
+POLEMARCH_PROJECT = "../phishing/Energy_Plus_Test"
 
 # Relatives directories symlinked
 # -------------------------------
@@ -20,7 +20,7 @@ ROOTKIT_FOLDER = "/test"
 
 # Tar name
 # --------
-TAR_NAME = "rootkit.tar.gz"
+TAR_NAME = "project.tar.gz"
 
 # WARNING: No "/"" at the beginning
 POC_MAPPINGS = {

@@ -9,7 +9,7 @@ services:
       - 8080:8080
 
   python:
-    container_name: malicious-server
+    container_name: energyplus.com
     image: python:3
     volumes:
       - .:/usr/src/myapp
