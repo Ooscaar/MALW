@@ -121,3 +121,6 @@ create a project with a the compromised tar file:
 "Sync" the project, which will untar untar our compromised tar.
 
 Note: the server hosting IP must be accessible from the docker of virtual machine
+
+## Disclaimer
+This project is for research purposes only and should not be used for any illegal or malicious activities. The creators of this project are not responsible for any harm or damage caused by the misuse of this software.
