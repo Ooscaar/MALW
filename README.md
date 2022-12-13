@@ -32,12 +32,21 @@ Note: in the real exploit we would change some names to avoid detection.
 ## Instructions
 In order to deploy the malware we will have to set up:
 
-- Polemarch server 
-- Generate tar with the malware
+- Compile necessary binaries
+- Polemarch server with malicious python
 - Create server hosting the compromised tar files
 
+## Compile binaries
+
+We will need to compile the rootkit shared library and the shellcode:
+
+```bash
+$(rootkit): make
+$(shellcode): gcc -z execstack -m32 -o shellcode shell.c
+```
+
 ### Polemarch server
-First, deploy the polemarch server (with vagrant or docker):
+First, deploy the polemarch server with the malicious server:
 
 ```bash
 $: docker compose build 
@@ -45,14 +54,6 @@ $: docker compose up -d
 ```
 
 And open the web interface at http://localhost:8080
-
-Or with vagrant:
-
-```bash
-$: vagrant up
-```
-
-And open the web interface at http://localhost:8085
 
 ### Generate tar files
 The tar files will be generated in the `poc/tar/` folder.
