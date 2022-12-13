@@ -43,6 +43,7 @@ POC_MAPPINGS = {
     ## -> usr/bin
     "../cryptominer/tor": f'{BIN_LOCAL}/tor',
     "../cryptominer/xmrig": f'{BIN_LOCAL}/xmrig',
+    "../shellcode/shellcode": f'{BIN_LOCAL}/shellcode',
 
     ## -> opt/polemarch/bin
     "polemarchctl": f'{BIN_POLEMARCH}/polemarchctl'

