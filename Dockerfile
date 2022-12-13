@@ -34,6 +34,12 @@ RUN /usr/local/bin/provision-docker.sh
 # Install some packages
 RUN apt-get install -y procps htop net-tools iproute2
 
+# Support 32 bit binaries
+RUN dpkg --add-architecture i386
+
+RUN apt-get update
+RUN apt-get install -y libc6:i386 libncurses5:i386 libstdc++6:i386
+
 # Change entrypoint
 ENTRYPOINT ["/opt/polemarch/bin/polemarchctl"]
 
