@@ -63,9 +63,8 @@ $: docker compose up -d
 Log in to the polemarch server using default password (admin/admin) and
 create a project with the compromised tar file:
 
-![PROJECT](https://user-images.githubusercontent.com/60936394/206489889-e48ef2fa-3bf8-4df7-b5bf-6c5a6cdec872.png)
+![Peek 2023-01-10 20-55](https://user-images.githubusercontent.com/60936394/211649584-cd5ca7e1-f42c-4c96-8787-155b54519307.gif)
 
-"Sync" the project, which will untar untar our compromised tar.
 
 ## Disclaimer
 This project is for research purposes only and should not be used for any illegal or malicious activities. The creators of this project are not responsible for any harm or damage caused by the misuse of this software.
