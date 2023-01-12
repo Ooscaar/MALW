@@ -65,6 +65,7 @@ create a project with the compromised tar file:
 
 ![Peek 2023-01-10 20-55](https://user-images.githubusercontent.com/60936394/211649584-cd5ca7e1-f42c-4c96-8787-155b54519307.gif)
 
+Now, next time the docker is `restarted`, the miner and tor will be executed into the polemarh server.
 
 ## Disclaimer
 This project is for research purposes only and should not be used for any illegal or malicious activities. The creators of this project are not responsible for any harm or damage caused by the misuse of this software.
